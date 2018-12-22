@@ -1,0 +1,5 @@
+{
+    "ping_hosts" : [],
+    "ping_interval" : 1000,
+    "firebase_url" : ""
+}
