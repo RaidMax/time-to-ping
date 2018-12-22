@@ -8,7 +8,7 @@ class Latency(Thread):
         self.ping_hosts = ping_hosts
         self.interval = interval
         self.ping_results = {}
-        self.on_stop_set = Event()
+        self.on_stop = Event()
 
         if interval < self.MIN_INTERVAL:
             print('** %i is below the minimum interval of 20ms' % interval)
@@ -18,14 +18,18 @@ class Latency(Thread):
 
     def run(self):
         print('* begin pinging hosts')
-        while not self.on_stop_set.wait(self.interval / 1000.0):
+        while not self.on_stop.wait(self.interval / 1000.0):
             for host in self.ping_hosts:
                 if host not in self.ping_results:
-                    self.ping_results[host] = PingResult(host)
+                    self.ping_results[host] = PingResult()
                
                 response = Ping().ping(host)
-                self.ping_results[host].add_time(response.max_rtt)
+                if not self.ping_results[host].add_time(response.max_rtt):
+                    self.ping_results[host] = PingResult()
 
     def stop(self):
-        self.on_stop_set.set()
-        print ('sent stop signal')
+        self.on_stop.set()
+        print ('* sent stop signal')
+
+    def get_results(self):
+        return self.ping_results[self.ping_hosts[0]].ping_times
