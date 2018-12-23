@@ -10,7 +10,7 @@ graph = LatencyGraph(latency)
 
 @app.route('/')
 def index():
-    return render_template('ping.html')
+    return render_template('ping.html', interval=config.get_value('ping_interval'))
 
 @app.route('/graph')
 def graph_route():

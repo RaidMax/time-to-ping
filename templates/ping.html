@@ -1,9 +1,19 @@
 {% extends 'scaffold.html' %}
 {% block body %}
-    <div class="row">
-        <h1>XXX-XXX-XXX-XXX</h1>
+    <div>
+        <figure id="display_graph">
+
+        </figure>
     </div>
     <div class="row">
-
+        <script>
+            let interval = {{interval}};
+            function refreshGraph() {
+                $.get('/graph', function(data) {
+                    $('#display_graph').html(data);
+                });
+            }
+            setInterval(refreshGraph, interval);
+        </script>
     </div>
 {% endblock %}

@@ -20,16 +20,20 @@ class Latency(Thread):
         print('* begin pinging hosts')
         while not self.on_stop.wait(self.interval / 1000.0):
             for host in self.ping_hosts:
-                if host not in self.ping_results:
-                    self.ping_results[host] = PingResult()
+                host_thread = Thread(target=self._poll, args=(host,))
+                host_thread.start()
                
-                response = Ping().ping(host)
-                if not self.ping_results[host].add_time(response.max_rtt):
-                    self.ping_results[host] = PingResult()
+    def _poll(self, host):
+        if host not in self.ping_results:
+            self.ping_results[host] = PingResult()
+            
+        response = Ping().ping(host, times=1)
+        if not self.ping_results[host].add_time(response.max_rtt):
+            self.ping_results[host] = PingResult()
 
     def stop(self):
         self.on_stop.set()
         print ('* sent stop signal')
 
     def get_results(self):
-        return self.ping_results[self.ping_hosts[0]].ping_times
+        return self.ping_results

@@ -1,7 +1,8 @@
+from queue import Queue
 import time
 
 class PingResult:
-    MAX_RESULTS = 1024
+    MAX_RESULTS = 60
     
     def __init__(self):
         self.total_pings = 0
@@ -10,10 +11,11 @@ class PingResult:
         self.min_rtt = None
         self.avg_rtt = None
         self.ping_times = []
+        self.ping_time_queue = Queue(maxsize=PingResult.MAX_RESULTS)
 
     def add_time(self, latency):
-        if self.total_pings == PingResult.MAX_RESULTS:
-            return False
+        if self.ping_time_queue.qsize() == PingResult.MAX_RESULTS - 1:
+            self.ping_time_queue.get()
 
         self.total_pings += 1
 
@@ -35,12 +37,15 @@ class PingResult:
                 # keeps a running average of the latency
                 self.avg_rtt = (self.avg_rtt * (count - 1) + latency) / count
 
-            self.ping_times.append({ 
+            self.ping_time_queue.put({ 
                     'time' : int(round(time.time() * 1000)),  
                     'latency' : latency
                 })
 
         return True
+
+    def get_ping_times(self):
+        return list(self.ping_time_queue.queue)
 
     def get_max_time(self):
         return self.max_rtt
